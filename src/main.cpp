@@ -13,9 +13,7 @@
 /*      GLOBALS                        */
 /***************************************/
 std::vector<Object> g_objs
-    {
-        Sphere({0, 0, 0})
-    };
+    { Sphere({0, 0, 0}) };
     
 Scene* g_scene = nullptr;
 
@@ -28,7 +26,7 @@ glm::vec3 g_lightPos{1, 1, 1};
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    render(*g_scene, g_lightPos);
+    render(*g_scene);
     glFlush();
 }
 
@@ -39,7 +37,7 @@ void init (void)
     if(g_scene)
         delete g_scene;
     
-    g_scene = new Scene(g_objs);
+    g_scene = new Scene(g_objs, g_lightPos);
 }
 
 int main(int argc, char** argv)

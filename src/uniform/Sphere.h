@@ -3,8 +3,8 @@
 
 namespace uniform
 {
-    void load(const Sphere& model)
+    template<typename Program>
+    void load(const Program& program, const Sphere& model)
     {
-        
     }
 }

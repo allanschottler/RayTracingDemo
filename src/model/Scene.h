@@ -20,15 +20,16 @@ public:
     
     Scene() = default;
 
-    Scene(Objects objects)
-        : _objects(objects)
+    Scene(Objects pobjects, glm::vec3 plightPos)
+        : lightPos(plightPos)
+        , _objects(pobjects)
     {
         init();
     }
 
     Scene& operator=(const Scene& rhs)
     {
-        _canvas = rhs._canvas;
+        _quad = rhs._quad;
         init();
         return *this;
     }
@@ -36,11 +37,13 @@ public:
     Scene(Scene&&) = default;
     Scene& operator=(Scene&&) = default;
 
+    glm::vec3 lightPos;
+    
     const freijo::VAO& vao() const noexcept
     { return _vao; }
     
     const VBO& vertexes() const noexcept
-    { return _canvas; }
+    { return _quad; }
 
     const freijo::program& program() const noexcept
     { return _program; }
@@ -54,7 +57,7 @@ private:
     freijo::VAO _vao;
 
     /** Vertex Buffer Object(VBO) */
-    VBO _canvas {
+    VBO _quad {
         {0, 0},
         {1, 0},
         {1, 1},
@@ -62,7 +65,7 @@ private:
     };
 
     void attachVBO()
-    { _vao.attach(0, _canvas); }
+    { _vao.attach(0, _quad); }
 
     //** Programa OpenGL com os devidos shaders */
     freijo::program _program; 

@@ -12,8 +12,6 @@ namespace gl
         }
         
         ~MatrixMode()
-        {
-            glPopMatrix();
-        }
+        { glPopMatrix(); }
     };    
 }

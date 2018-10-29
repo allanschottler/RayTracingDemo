@@ -1,5 +1,5 @@
 #include "Scene.h"
-#include "../uniform/Object.h"
+#include "../uniform/Scene.h"
 
 #include <GL/glew.h>
 #include <GL/glx.h>
@@ -7,37 +7,33 @@
 #include "../gl/disable.h"
 #include "../gl/matrixMode.h"
         
-void drawQuad() 
-{
+void render(const Scene& scene) 
+{   
+    // Bind VAO
+    freijo::scoped_vao_bind svb(scene.vao());
+    
+    //Load program
+    scene.program().use();
+    
+    // Define cor branca default
     glColor4f(1, 1, 1, 1);
     
-    // Desenha imagem do PBO
+    // Desabilita teste de profundidade
     gl::Disable(GL_DEPTH_TEST);
 
+    // Define projeção ortográfica
     gl::MatrixMode(GL_PROJECTION);    
     glOrtho(0.0, 1.0, 0.0, 1.0, 0.0, 1.0);
 
     gl::MatrixMode(GL_MODELVIEW);
 
-    // Desenha um quad de textura.
-    glBegin(GL_QUADS);
-    glVertex2f(0, 0);
-    glVertex2f(1, 0);
-    glVertex2f(1, 1);
-    glVertex2f(0, 1);
-    glEnd();
-
-}
-
-void render(const Scene& scene, glm::vec3 lightPos) 
-{   
-    //Load program
+    uniform::load(scene.program(), scene);
     
-    drawQuad();    
-    
-//    for(const auto& obj : scene.objects())
-//        uniform::load(obj);
+    // Desenha um quad.
+    const auto& vertexes = scene.vertexes();
+    glDrawArrays(GL_QUADS, 0, vertexes.size());  
     
     //Unload program
+    glUseProgram(0);
 }
 

@@ -6,14 +6,10 @@ namespace gl
     {
         Disable(GLuint mode)
             : _mode(mode)
-        {
-            glDisable(mode);
-        }
+        { glDisable(mode); }
         
         ~Disable()
-        {
-            glDisable(_mode);
-        }
+        { glDisable(_mode); }
         
     private:
         GLuint _mode;

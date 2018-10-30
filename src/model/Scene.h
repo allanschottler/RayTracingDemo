@@ -1,5 +1,8 @@
 #pragma once
 #include "Object.h"
+#include "Camera.h"
+#include "../util/readFile.h"
+#include "../util/getWorkingDir.h"
 
 #include <freijo/VAO.hpp>
 #include <freijo/buffer.hpp>
@@ -20,7 +23,7 @@ public:
     
     Scene() = default;
 
-    Scene(Objects pobjects, glm::vec3 plightPos)
+    Scene(Camera camera, Objects pobjects, glm::vec3 plightPos)
         : lightPos(plightPos)
         , _objects(pobjects)
     {
@@ -38,7 +41,7 @@ public:
     Scene& operator=(Scene&&) = default;
 
     glm::vec3 lightPos;
-    
+        
     const freijo::VAO& vao() const noexcept
     { return _vao; }
     
@@ -47,6 +50,9 @@ public:
 
     const freijo::program& program() const noexcept
     { return _program; }
+    
+    const Camera& camera() const noexcept
+    { return _camera; }
     
     const Objects& objects() const noexcept
     { return _objects; }
@@ -70,6 +76,8 @@ private:
     //** Programa OpenGL com os devidos shaders */
     freijo::program _program; 
     
+    Camera _camera;
+    
     Objects _objects;
     
     void init()
@@ -78,9 +86,13 @@ private:
 
         try
         {
+            std::string shadersPath = util::getRootDir() + "/src/shader/";
+            auto vs = util::readFile(shadersPath + "Scene.vs");
+            auto fs = util::readFile(shadersPath + "Scene.fs");
+            
             _program = freijo::program{
-                freijo::vertex_shader("").id(),
-                freijo::fragment_shader("").id()
+                freijo::vertex_shader(vs).id(),
+                freijo::fragment_shader(fs).id()
             };
         }
         catch(const std::runtime_error& e)

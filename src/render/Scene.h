@@ -4,12 +4,17 @@
 
 #include <GL/glew.h>
 #include <GL/glx.h>
+#include <glm/gtx/io.hpp>
 
 #include "../gl/disable.h"
 #include "../gl/matrixMode.h"
+#include "../gl/DebugMessage.h"
 
 inline void render(const Scene& scene)
 {   
+    // Print de erros GL
+    gl::DebugMessage dbm();
+    
     // Bind VAO
     freijo::scoped_vao_bind svb(scene.vao());
     
@@ -26,8 +31,8 @@ inline void render(const Scene& scene)
     gl::MatrixMode(GL_PROJECTION);    
     glOrtho(0.0, 1.0, 0.0, 1.0, 0.0, 1.0);
 
-    gl::MatrixMode(GL_MODELVIEW);
-
+    gl::MatrixMode(GL_MODELVIEW);        
+    
     // Passa uniformes para shader
     uniform::load(scene.program(), scene);
     

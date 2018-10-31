@@ -16,7 +16,7 @@ namespace util
         }
         
         while(getline(myfile,line))
-        { out += line; }
+        { out += line + '\n'; }
 
         myfile.close();
         return out;        

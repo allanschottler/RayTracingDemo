@@ -5,7 +5,7 @@ struct Camera
 {
     Camera() = default;
 
-    Camera(glm::mat4 pmodelview, glm::mat4 pprojection, glm::vec2 pviewport)
+    Camera(glm::mat4 pmodelview, glm::mat4 pprojection, glm::vec4 pviewport)
         : modelview(std::move(pmodelview))
         , projection(std::move(pprojection))
         , viewport(std::move(pviewport))
@@ -24,5 +24,5 @@ struct Camera
     
     glm::mat4 modelview;
     glm::mat4 projection;
-    glm::vec2 viewport;
+    glm::vec4 viewport;
 };

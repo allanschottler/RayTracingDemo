@@ -9,7 +9,7 @@ namespace gl
         { glDisable(mode); }
         
         ~Disable()
-        { glDisable(_mode); }
+        { glEnable(_mode); }
         
     private:
         GLuint _mode;

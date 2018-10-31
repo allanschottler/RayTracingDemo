@@ -21,10 +21,11 @@ public:
     using Objects = std::vector<Object>;
     using VBO = freijo::VBO<glm::vec2>;
     
-    Scene() = default;
+    //Scene() = default;
 
-    Scene(Camera camera, Objects pobjects, glm::vec3 plightPos)
+    Scene(Camera& camera, Objects pobjects, glm::vec3 plightPos)
         : lightPos(plightPos)
+        , _camera(camera)
         , _objects(pobjects)
     {
         init();
@@ -41,6 +42,8 @@ public:
     Scene& operator=(Scene&&) = default;
 
     glm::vec3 lightPos;
+    
+    glm::mat4 transform;
         
     const freijo::VAO& vao() const noexcept
     { return _vao; }
@@ -64,10 +67,10 @@ private:
 
     /** Vertex Buffer Object(VBO) */
     VBO _quad {
-        {0, 0},
-        {1, 0},
+        {-1, -1},
+        {1, -1},
         {1, 1},
-        {0, 1}
+        {-1, 1}
     };
 
     void attachVBO()
@@ -76,7 +79,7 @@ private:
     //** Programa OpenGL com os devidos shaders */
     freijo::program _program; 
     
-    Camera _camera;
+    Camera& _camera;
     
     Objects _objects;
     
@@ -89,7 +92,7 @@ private:
             std::string shadersPath = util::getRootDir() + "/src/shader/";
             auto vs = util::readFile(shadersPath + "Scene.vs");
             auto fs = util::readFile(shadersPath + "Scene.fs");
-            
+                        
             _program = freijo::program{
                 freijo::vertex_shader(vs).id(),
                 freijo::fragment_shader(fs).id()

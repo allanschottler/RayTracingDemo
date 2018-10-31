@@ -1,3 +1,5 @@
+#version 330
+
 /******************************************************************************/
 /*                                                                            */
 /* Estruturas auxiliares                                                      */
@@ -45,11 +47,11 @@ uniform Material material;
 uniform Sphere spheres[16];
                  
 // Planos near e far
-uniform vec3 nearHorizontal;                                                                                           
-uniform vec3 nearVertical;                                                                                             
+uniform vec3 nearRight;                                                                                           
+uniform vec3 nearUp;                                                                                             
 uniform vec3 nearCenter;                                                                                               
-uniform vec3 farHorizontal;                                                                                            
-uniform vec3 farVertical;                                                                                              
+uniform vec3 farRight;                                                                                            
+uniform vec3 farUp;                                                                                              
 uniform vec3 farCenter;        
 
 // Cor de saída
@@ -68,13 +70,13 @@ Ray getCurrentRay()
 
     // Fragmento unprojected (mundo) no plano near
     vec4 fragmentNear = vec4(nearCenter + 
-        nearHorizontal * normalizedFragCoord.x + 
-        nearVertical   * normalizedFragCoord.y, 1);
+        nearRight * normalizedFragCoord.x + 
+        nearUp   * normalizedFragCoord.y, 1);
         
     // Fragmento unprojected (mundo) no plano far
     vec4 fragmentFar = vec4(farCenter + 
-        farHorizontal * normalizedFragCoord.x + 
-        farVertical * normalizedFragCoord.y, 1);      
+        farRight * normalizedFragCoord.x + 
+        farUp * normalizedFragCoord.y, 1);      
 
     Ray ray;
     ray.orig = fragmentNear.xyz;    
@@ -87,7 +89,7 @@ float phong(in vec3 point, in vec3 normal)
 {
     vec3 L = lightPos - point;
     vec3 r = reflect(-L, normal);
-    vec3 eye = modelview[3];
+    vec3 eye = modelview[3].xyz;
     vec3 v = eye - point;
     
     float aI = material.ambient;
@@ -112,7 +114,16 @@ bool solve_bhaskara(
     }
         
     t0 = (-b + sqrt(delta)) / (2*a);
-    t1 = (-b - sqrt(delta)) / (2*a);    
+    t1 = (-b - sqrt(delta)) / (2*a);
+    
+    // Swap
+    if(t1 < t0)
+    {
+        float temp = t1;
+        t1 = t0;
+        t0 = temp;
+    }
+    
     return true;
 }    
 
@@ -120,16 +131,22 @@ bool intersectRaySphere(
     in Ray ray, in Sphere sphere, 
     out vec3 intersection, out vec3 normal)
 {
+    vec3 center2orig = ray.orig - sphere.center;
+    
     float a = 1;
-    float b = 2 * dot(ray.orig, ray.dir);
-    float c = dot(ray.orig, ray.orig);
+    float b = 2.0f * dot(center2orig, ray.dir); //2 * dot(ray.orig, ray.dir);
+    float c = dot(center2orig, center2orig) - sphere.radius*sphere.radius;
     
     float t0, t1;
     if(!solve_bhaskara(a, b, c, t0, t1))
         return false;
     
-    float t = t0 < t1 ? t0 : t1;
-    intersection = ray.orig + time * ray.dir;
+    // Se o maior tempo for negativo...
+    if(t1 < 0)
+        return false;
+    
+    float t = t0 < 0 ? t1 : t0;
+    intersection = ray.orig + t * ray.dir;
     normal = normalize(intersection - sphere.center);
     
     return true;
@@ -147,8 +164,11 @@ void main(void)
         return;
     }
     
+    vec2 normalizedFragCoord = 2.0 * gl_FragCoord.xy / viewport - 1.0;
+    
     // Aplica iluminacao
-    fragColor = phong(intersection, normal);
+//    fragColor = vec4(1); //phong(intersection, normal);
+    fragColor = vec4(abs(normalize(getCurrentRay().dir)), 1);
 
     // Projeta no espaço de clip o ponto da interceptacao
     vec4 newCoord = projection * modelview * vec4(intersection, 1);
@@ -158,3 +178,4 @@ void main(void)
     // ponto de intersecao no espaco de clip normalizado de [0..1]
     gl_FragDepth = (newCoord.z + 1.0f) / 2.0f;
 }
+

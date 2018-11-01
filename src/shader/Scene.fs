@@ -33,7 +33,8 @@ struct Material
 /******************************************************************************/
 
 // Matrizes
-uniform mat4 modelview;  
+uniform mat4 model;
+uniform mat4 view;  
 uniform mat4 projection;  
 uniform vec2 viewport;  
 
@@ -89,7 +90,7 @@ float phong(in vec3 point, in vec3 normal)
 {
     vec3 L = lightPos - point;
     vec3 r = reflect(-L, normal);
-    vec3 eye = modelview[3].xyz;
+    vec3 eye = (view * model)[3].xyz;
     vec3 v = eye - point;
     
     float aI = material.ambient;
@@ -131,11 +132,12 @@ bool intersectRaySphere(
     in Ray ray, in Sphere sphere, 
     out vec3 intersection, out vec3 normal)
 {
-    vec3 center2orig = ray.orig - sphere.center;
+    vec4 worldCenter = view * model * vec4(sphere.center, 1);
+    vec3 center2orig = ray.orig - worldCenter.xyz;
     
     float a = 1;
-    float b = 2.0f * dot(center2orig, ray.dir); //2 * dot(ray.orig, ray.dir);
-    float c = dot(center2orig, center2orig) - sphere.radius*sphere.radius;
+    float b = 2.0f * dot(center2orig, ray.dir);
+    float c = dot(center2orig, center2orig) - sphere.radius * sphere.radius;
     
     float t0, t1;
     if(!solve_bhaskara(a, b, c, t0, t1))
@@ -164,14 +166,13 @@ void main(void)
         return;
     }
     
-    vec2 normalizedFragCoord = 2.0 * gl_FragCoord.xy / viewport - 1.0;
-    
     // Aplica iluminacao
 //    fragColor = vec4(1); //phong(intersection, normal);
-    fragColor = vec4(abs(normalize(getCurrentRay().dir)), 1);
+    vec3 axis = abs(normalize(intersection - spheres[0].center));
+    fragColor = /*projection * view **/ vec4(axis, 1);
 
     // Projeta no espaço de clip o ponto da interceptacao
-    vec4 newCoord = projection * modelview * vec4(intersection, 1);
+    vec4 newCoord = projection * view * model * vec4(intersection, 1);
     newCoord.z /= newCoord.w;
 
     // Atualiza profundidade do fragmento como a coordenada z do

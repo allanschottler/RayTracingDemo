@@ -14,7 +14,7 @@ inline void render(const Scene& scene)
 {   
     // Print de erros GL
     gl::DebugMessage dbm();
-    
+        
     // Bind VAO
     freijo::scoped_vao_bind svb(scene.vao());
     
@@ -25,7 +25,7 @@ inline void render(const Scene& scene)
     glColor4f(1, 1, 1, 1);
     
     // Desabilita teste de profundidade
-    gl::Disable(GL_DEPTH_TEST);
+    freijo::enable(GL_DEPTH_TEST);
 
     // Define projeção ortográfica
     gl::MatrixMode(GL_PROJECTION);    

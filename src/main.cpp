@@ -13,7 +13,7 @@
 /*  GLOBALS                            */
 /***************************************/
 std::vector<Object> g_objs
-    { Sphere({0, 0, 0}) };
+    { Sphere({1, 1, 0}) };
     
 Scene* g_scene = nullptr;
 
@@ -25,9 +25,8 @@ int arcball_on = false;
 glm::vec4 viewport{0, 0, 800, 600};
          
 Camera cam {
-    glm::lookAt(glm::vec3{0, 1, 1}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}),
-    //glm::mat4(),
-    glm::perspective(40.f, viewport.z/viewport.w, 0.1f, 1000.f),
+    glm::lookAt(glm::vec3{0, 0, 2}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}),
+    glm::perspective(40.f, viewport.z/viewport.w, 0.01f, 10.f),
     viewport
 };
     
@@ -57,7 +56,7 @@ glm::vec3 get_arcball_vector(int x, int y)
 
 void onMouse(int button, int state, int x, int y) 
 {
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) 
+    if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) 
     {
         arcball_on = true;
         last_mx = cur_mx = x;
@@ -71,7 +70,7 @@ void onMouse(int button, int state, int x, int y)
 
 void onMotion(int x, int y) 
 {
-    if (arcball_on) 
+    if(arcball_on) 
     {
         cur_mx = x;
         cur_my = y;
@@ -86,7 +85,7 @@ void onIdle()
         glm::vec3 vb = get_arcball_vector(cur_mx,  cur_my);
         float angle = acos(std::min(1.0f, glm::dot(va, vb)));
         glm::vec4 axis_in_camera_coord = glm::vec4(glm::cross(va, vb), 1);
-        glm::mat4 camera2object = glm::inverse(cam.modelview);// * g_scene->transform;
+        glm::mat4 camera2object = glm::inverse(cam.modelview) * g_scene->transform;
         glm::vec4 axis_in_object_coord = camera2object * axis_in_camera_coord;
         g_scene->transform = glm::rotate(
             g_scene->transform, 
@@ -94,9 +93,16 @@ void onIdle()
             glm::vec3{axis_in_object_coord});
         last_mx = cur_mx;
         last_my = cur_my;
-    }    
-    
-    glutPostRedisplay();
+        
+        glutPostRedisplay();
+    }        
+}
+
+void onReshape(int width, int height) 
+{
+    cam.viewport.z = width;
+    cam.viewport.w = height;
+    glViewport(cam.viewport.x, cam.viewport.y, width, height);
 }
 
 void display(void)
@@ -128,10 +134,11 @@ int main(int argc, char** argv)
     
     // App
     init();
-    glutDisplayFunc(display); 
-//    glutMouseFunc(onMouse);
-//    glutMotionFunc(onMotion);
-//    glutIdleFunc(onIdle);
+    glutDisplayFunc(display);
+    glutReshapeFunc(onReshape);
+    glutMouseFunc(onMouse);
+    glutMotionFunc(onMotion);
+    glutIdleFunc(onIdle);
     glutMainLoop();
     return 0;
 }

@@ -10,6 +10,7 @@
 #include <freijo/shader.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <range/v3/view/any_view.hpp>
 #include <iostream>
 
 /**
@@ -21,27 +22,15 @@ public:
     using Objects = std::vector<Object>;
     using VBO = freijo::VBO<glm::vec2>;
     
-    //Scene() = default;
+//    Scene() = default;
 
-    Scene(Camera& camera, Objects pobjects, glm::vec3 plightPos)
-        : lightPos(plightPos)
-        , _camera(camera)
-        , _objects(pobjects)
-    {
-        init();
-    }
-
-    Scene& operator=(const Scene& rhs)
-    {
-        _quad = rhs._quad;
-        init();
-        return *this;
-    }
+    Scene(Camera camera, Objects pobjects)
+        : _camera(std::move(camera))
+        , _objects(std::move(pobjects))
+    { init(); }
 
     Scene(Scene&&) = default;
     Scene& operator=(Scene&&) = default;
-
-    glm::vec3 lightPos;
     
     glm::mat4 transform;
         
@@ -79,7 +68,7 @@ private:
     //** Programa OpenGL com os devidos shaders */
     freijo::program _program; 
     
-    Camera& _camera;
+    Camera _camera;
     
     Objects _objects;
     

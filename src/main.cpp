@@ -7,28 +7,38 @@
 #include "render/Scene.h"
 #include "model/Object.h"
 
+#include "range/v3/all.hpp"
+
 #include <iostream>
 
 /***************************************/
 /*  GLOBALS                            */
 /***************************************/
-std::vector<Object> g_objs
-    { Sphere({1, 1, 0}) };
-    
-Scene* g_scene = nullptr;
-
-glm::vec3 g_lightPos{1, 1, 1};
-
-int last_mx = 0, last_my = 0, cur_mx = 0, cur_my = 0;
-int arcball_on = false;
 
 glm::vec4 viewport{0, 0, 800, 600};
+
+std::vector<object_t> g_objs{ 
+//    Camera {
+//        glm::lookAt(glm::vec3{0, 0, 2}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}),
+//        glm::perspective(40.f, viewport.z/viewport.w, 0.01f, 10.f),
+//        viewport
+//    },
+    Light({1, 1, 1}),
+    Sphere({1, 1, 0})
+};    
+
+//glm::vec3 g_lightPos{1, 1, 1};
          
-Camera cam {
+Camera g_cam {
     glm::lookAt(glm::vec3{0, 0, 2}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}),
     glm::perspective(40.f, viewport.z/viewport.w, 0.01f, 10.f),
     viewport
 };
+
+Scene* g_scene = nullptr;
+
+int last_mx = 0, last_my = 0, cur_mx = 0, cur_my = 0;
+int arcball_on = false;
     
 /***************************************/
 /*  GL INIT                            */
@@ -52,6 +62,43 @@ glm::vec3 get_arcball_vector(int x, int y)
     else
         P = glm::normalize(P);  // nearest point
     return P;
+}
+
+struct GetUniqueObj
+{
+    using result_type = Object;
+    
+    inline result_type operator()(const Sphere& model)
+    { return {spheresId++, model}; }
+    
+    inline result_type operator()(const Light& model)
+    { return {lightsId++, model}; }
+    
+    inline result_type operator()(const Material& model)
+    { return {materialsId++, model}; }
+    
+    std::size_t& spheresId;
+    std::size_t& lightsId;
+    std::size_t& materialsId;
+};
+
+template<typename Rng>
+std::vector<Object> uniqueObjOf(Rng&& objects)
+{
+    using value_t = typename ranges::range_value_t<Rng>;
+    std::size_t spheresId{0};
+    std::size_t lightsId{0};
+    std::size_t materialsId{0};
+    
+    return objects 
+        | ranges::view::transform(
+            [&spheresId, &lightsId, &materialsId]
+            (const value_t& obj) mutable
+            {
+                GetUniqueObj v{spheresId, lightsId, materialsId};
+                return boost::apply_visitor(v, obj);
+            })
+        | ranges::to_vector;
 }
 
 void onMouse(int button, int state, int x, int y) 
@@ -85,7 +132,7 @@ void onIdle()
         glm::vec3 vb = get_arcball_vector(cur_mx,  cur_my);
         float angle = acos(std::min(1.0f, glm::dot(va, vb)));
         glm::vec4 axis_in_camera_coord = glm::vec4(glm::cross(va, vb), 1);
-        glm::mat4 camera2object = glm::inverse(cam.modelview) * g_scene->transform;
+        glm::mat4 camera2object = glm::inverse(g_cam.modelview) * g_scene->transform;
         glm::vec4 axis_in_object_coord = camera2object * axis_in_camera_coord;
         g_scene->transform = glm::rotate(
             g_scene->transform, 
@@ -100,9 +147,9 @@ void onIdle()
 
 void onReshape(int width, int height) 
 {
-    cam.viewport.z = width;
-    cam.viewport.w = height;
-    glViewport(cam.viewport.x, cam.viewport.y, width, height);
+    g_cam.viewport.z = width;
+    g_cam.viewport.w = height;
+//    glViewport(g_cam.viewport.x, g_cam.viewport.y, width, height);
 }
 
 void display(void)
@@ -117,7 +164,7 @@ void init()
     glClearColor(0.0, 0.0, 0.0, 0.0);
     
     if(g_scene) delete g_scene;    
-    g_scene = new Scene(cam, g_objs, g_lightPos);
+    g_scene = new Scene(g_cam, uniqueObjOf(g_objs));
 }
 
 int main(int argc, char** argv)

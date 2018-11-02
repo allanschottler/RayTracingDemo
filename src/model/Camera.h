@@ -11,6 +11,12 @@ struct Camera
         , viewport(std::move(pviewport))
     {}
 
+    Camera(const Camera& rhs)
+        : modelview(rhs.modelview)
+        , projection(rhs.projection)
+        , viewport(rhs.viewport)
+    {}
+    
     Camera& operator=(const Camera& rhs)
     {
         modelview = rhs.modelview;

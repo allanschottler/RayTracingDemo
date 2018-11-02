@@ -1,18 +1,13 @@
 #pragma once
 #include "../model/Sphere.h"
+#include "id2loc.h"
 
 namespace uniform
-{
-    inline std::string index2loc(int index)
-    {
-        std::string base = "spheres";
-        return index < 0 ? base : base + "[" + std::to_string(index) + "]."; 
-    }
-        
+{        
     template<typename Program>
-    inline void load(const Program& program, const Sphere& model, int index = -1)
+    inline void load(const Program& program, const Sphere& model, std::size_t id)
     {
-        std::string loc = index2loc(index);
+        std::string loc = id2loc(id, spheres_tag{});
         gl::uniform(program, model.center, loc + "center");
         gl::uniform(program, model.radius, loc + "radius");
         gl::uniform(program, model.color,  loc + "color");

@@ -1,7 +1,7 @@
 #pragma once
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
+//#include <GL/glew.h>
+//#include <GL/gl.h>
+//#include <GL/glext.h>
 
 #include <freijo/VAO.hpp>
 #include <freijo/buffer.hpp>

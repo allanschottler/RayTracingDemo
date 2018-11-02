@@ -12,6 +12,12 @@ struct Ray
     vec3 dir;
 };
 
+struct Plane
+{
+    vec3 point;
+    vec3 normal;
+};
+
 struct Sphere
 {
     vec3 center;
@@ -21,9 +27,16 @@ struct Sphere
 
 struct Material
 {
-    float ambient;
-    float diffuse;
-    float specular;
+    float diffuseK;
+    vec4 diffuseColor;
+    float specularK;
+    float shininess;
+};
+
+struct Light
+{
+    vec3 position;
+    vec4 color;
 };
 
 /******************************************************************************/
@@ -38,22 +51,23 @@ uniform mat4 view;
 uniform mat4 projection;  
 uniform vec2 viewport;  
 
-// Luzes                                                                                        
-uniform vec3 lightPos; 
-
-// Material de todas esferas
-uniform Material material;
-
-// Objetos de cena
-uniform Sphere spheres[16];
-                 
 // Planos near e far
 uniform vec3 nearRight;                                                                                           
 uniform vec3 nearUp;                                                                                             
 uniform vec3 nearCenter;                                                                                               
 uniform vec3 farRight;                                                                                            
 uniform vec3 farUp;                                                                                              
-uniform vec3 farCenter;        
+uniform vec3 farCenter;  
+
+// Luzes                                                                                        
+uniform Light light; 
+
+// Material de todas esferas
+uniform Material material;
+
+// Objetos de cena
+uniform Sphere spheres[16];
+uniform Plane ground;
 
 // Cor de saída
 out vec4 fragColor;
@@ -86,18 +100,17 @@ Ray getCurrentRay()
     return ray;
 }
 
-float phong(in vec3 point, in vec3 normal)
+vec4 phong(in vec3 point, in vec3 normal)
 {
-    vec3 L = lightPos - point;
+    vec3 L = light.position - point;
     vec3 r = reflect(-L, normal);
     vec3 eye = (view * model)[3].xyz;
     vec3 v = eye - point;
     
-    float aI = material.ambient;
-    float aD = material.diffuse * dot(normal, L);
-    float aS = material.specular * dot(r, v);
+    vec4 cD = material.diffuseK * max(dot(normal, L), 0.f) * material.diffuseColor;
+    vec4 cS = material.specularK * pow(max(dot(r, v), 0), material.shininess) * light.color;
     
-    return aI + aD + aS;
+    return cD + cS;
 }
 
 bool solve_bhaskara(
@@ -172,7 +185,7 @@ void main(void)
     fragColor = /*projection * view **/ vec4(axis, 1);
 
     // Projeta no espaço de clip o ponto da interceptacao
-    vec4 newCoord = projection * view * model * vec4(intersection, 1);
+    vec4 newCoord = projection * view * vec4(intersection, 1);
     newCoord.z /= newCoord.w;
 
     // Atualiza profundidade do fragmento como a coordenada z do

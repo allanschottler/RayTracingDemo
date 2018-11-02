@@ -4,6 +4,7 @@
 #include "Object.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <range/v3/all.hpp>
 
 namespace uniform
 {
@@ -18,9 +19,9 @@ namespace uniform
 //        glm::vec4 viewport;
 //        glGetFloatv(GL_VIEWPORT, glm::value_ptr(viewport)); 
 
-        glm::mat4 view  = model.camera().modelview;
+        glm::mat4 view = model.camera().modelview;
         glm::mat4 projection = model.camera().projection;
-        glm::vec4 viewport   = model.camera().viewport;
+        glm::vec4 viewport = model.camera().viewport;
         
         int width  = viewport.z;
         int height = viewport.w;
@@ -33,8 +34,7 @@ namespace uniform
         gl::uniform(program, model.transform, "model");
         gl::uniform(program, view, "view");
         gl::uniform(program, projection, "projection");
-        gl::uniform(program, glm::vec2{viewport.z, viewport.w}, "viewport");  
-        gl::uniform(program, model.lightPos, "lightPos");
+        gl::uniform(program, glm::vec2{width, height}, "viewport");
         
     /******************************************************************************************/
     /*      Uniformes de frustrum                                                             */
@@ -65,9 +65,9 @@ namespace uniform
         gl::uniform(program, farVertical - farCenter, "farUp");
         
         // Passa objetos para o programa
-        int index = 0;
-        for(const auto& sphere : model.objects())
-            uniform::load(program, sphere, index++);
+        ranges::for_each(model.objects(),
+            [&program](const Object& obj)
+            { uniform::load(program, obj); });
     }
 }
 

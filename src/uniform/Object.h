@@ -1,8 +1,9 @@
 #pragma once
 #include "../model/Object.h"
-#include "../uniform/Sphere.h"
-#include "../uniform/Light.h"
-#include "../uniform/Material.h"
+#include "Camera.h"
+#include "Sphere.h"
+#include "Light.h"
+#include "Material.h"
 
 namespace uniform
 {

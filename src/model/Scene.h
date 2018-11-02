@@ -24,9 +24,8 @@ public:
     
 //    Scene() = default;
 
-    Scene(Camera camera, Objects pobjects)
-        : _camera(std::move(camera))
-        , _objects(std::move(pobjects))
+    Scene(Objects pobjects)
+        : _objects(std::move(pobjects))
     { init(); }
 
     Scene(Scene&&) = default;
@@ -42,10 +41,7 @@ public:
 
     const freijo::program& program() const noexcept
     { return _program; }
-    
-    const Camera& camera() const noexcept
-    { return _camera; }
-    
+        
     const Objects& objects() const noexcept
     { return _objects; }
     
@@ -68,8 +64,7 @@ private:
     //** Programa OpenGL com os devidos shaders */
     freijo::program _program; 
     
-    Camera _camera;
-    
+    // Objetos de cena    
     Objects _objects;
     
     void init()

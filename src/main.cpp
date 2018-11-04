@@ -9,6 +9,7 @@
 
 #include "range/v3/all.hpp"
 #include "detail/toUniqueObjs.h"
+#include "detail/Arcball.h"
 
 #include <iostream>
 
@@ -17,106 +18,40 @@
 /***************************************/
 
 glm::vec4 viewport{0, 0, 800, 600};
+glm::mat4 modelview{glm::lookAt(glm::vec3{0, 0, 2}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0})};
+glm::mat4 projection{glm::perspective(glm::radians(45.0f), viewport.z/viewport.w, 0.1f, 100.f)};
 
 std::vector<object_t> g_objs{ 
     Camera {
-        glm::lookAt(glm::vec3{0, 0, 2}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}),
-        glm::perspective(40.f, viewport.z/viewport.w, 0.01f, 10.f),
+        modelview,
+        projection,
         viewport
     },
-    Light({1, 1, 1}),
-    Sphere({1, 1, 0})
+    Light({0, 0, 5}),
+    Material(0.77f, {1, 0, 0, 1}, 0.1f, 20.f),
+    Plane({0, 0, -1}, {0, 0, 1}),
+    Sphere({0, 0, 0})
 };    
-
-//glm::vec3 g_lightPos{1, 1, 1};
-         
-//Camera g_cam {
-//    glm::lookAt(glm::vec3{0, 0, 2}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}),
-//    glm::perspective(40.f, viewport.z/viewport.w, 0.01f, 10.f),
-//    viewport
-//};
 
 Scene* g_scene = nullptr;
 
-int last_mx = 0, last_my = 0, cur_mx = 0, cur_my = 0;
-int arcball_on = false;
+detail::Arcball arcball{modelview, projection, viewport};
     
 /***************************************/
 /*  GL INIT                            */
 /***************************************/
 
-/**
- * Get a normalized vector from the center of the virtual ball O to a
- * point P on the virtual ball surface, such that P is aligned on
- * screen's (X,Y) coordinates.  If (X,Y) is too far away from the
- * sphere, return the nearest point on the virtual ball surface.
- */
-glm::vec3 get_arcball_vector(int x, int y) 
-{
-    glm::vec3 P = glm::vec3(1.0 * x/viewport.z * 2 - 1.0,
-                            1.0 * y/viewport.w * 2 - 1.0,
-                            0);
-    P.y = -P.y;
-    float OP_squared = P.x * P.x + P.y * P.y;
-    if(OP_squared <= 1*1)
-        P.z = sqrt(1*1 - OP_squared);  // Pythagoras
-    else
-        P = glm::normalize(P);  // nearest point
-    return P;
-}
-
-
-
 void onMouse(int button, int state, int x, int y) 
-{
-    if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) 
-    {
-        arcball_on = true;
-        last_mx = cur_mx = x;
-        last_my = cur_my = y;
-    } 
-    else 
-    {
-        arcball_on = false;
-    }
-}
+{ arcball.onMouse(button, state, x, y); }
 
 void onMotion(int x, int y) 
-{
-    if(arcball_on) 
-    {
-        cur_mx = x;
-        cur_my = y;
-    }
-}
+{ arcball.onMotion(x, y); }
 
 void onIdle()
 {
-    if(cur_mx != last_mx || cur_my != last_my) 
-    {
-        glm::vec3 va = get_arcball_vector(last_mx, last_my);
-        glm::vec3 vb = get_arcball_vector(cur_mx,  cur_my);
-        float angle = acos(std::min(1.0f, glm::dot(va, vb)));
-        glm::vec4 axis_in_camera_coord = glm::vec4(glm::cross(va, vb), 1);
-        glm::mat4 camera2object = /*glm::inverse(g_objs[0].modelview) **/ g_scene->transform;
-        glm::vec4 axis_in_object_coord = camera2object * axis_in_camera_coord;
-        g_scene->transform = glm::rotate(
-            g_scene->transform, 
-            glm::degrees(angle), 
-            glm::vec3{axis_in_object_coord});
-        last_mx = cur_mx;
-        last_my = cur_my;
-        
+    if(arcball.onIdle(g_scene->transform))
         glutPostRedisplay();
-    }        
 }
-
-//void onReshape(int width, int height) 
-//{
-//    g_cam.viewport.z = width;
-//    g_cam.viewport.w = height;
-//    glViewport(g_cam.viewport.x, g_cam.viewport.y, width, height);
-//}
 
 void display(void)
 {
@@ -124,7 +59,7 @@ void display(void)
     render(*g_scene);
     glutSwapBuffers();
 }
-
+    
 void init() 
 {    
     glClearColor(0.0, 0.0, 0.0, 0.0);

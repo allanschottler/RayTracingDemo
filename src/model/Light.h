@@ -1,14 +1,15 @@
 #pragma once
-
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
-            
+#include "tags.h"
+
 /**
  * Modelo de luz de cena
  */            
 class Light
 {
 public:    
+    using tag_t = lights_tag;
     
     Light() = default;
 

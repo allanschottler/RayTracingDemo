@@ -10,6 +10,9 @@ struct MakeUniqueObj
     inline result_type operator()(const Sphere& model)
     { return {spheresId++, model}; }
     
+    inline result_type operator()(const Plane& model)
+    { return {planesId++, model}; }
+    
     inline result_type operator()(const Light& model)
     { return {lightsId++, model}; }
     
@@ -20,6 +23,7 @@ struct MakeUniqueObj
     { return {0, model}; }
     
     std::size_t& spheresId;
+    std::size_t& planesId;
     std::size_t& lightsId;
     std::size_t& materialsId;
 };
@@ -29,15 +33,16 @@ inline std::vector<Object> toUniqueObjs(Rng&& objects)
 {
     using value_t = typename ranges::range_value_t<Rng>;
     std::size_t spheresId{0};
+    std::size_t planesId{0};
     std::size_t lightsId{0};
     std::size_t materialsId{0};
 
     return objects 
         | ranges::view::transform(
-            [&spheresId, &lightsId, &materialsId]
+            [&spheresId, &planesId, &lightsId, &materialsId]
             (const value_t& obj) mutable
             {
-                MakeUniqueObj make{spheresId, lightsId, materialsId};
+                MakeUniqueObj make{spheresId, planesId, lightsId, materialsId};
                 return boost::apply_visitor(make, obj);
             })
         | ranges::to_vector;

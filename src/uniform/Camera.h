@@ -7,7 +7,7 @@
 namespace uniform
 {        
     template<typename Program>
-    inline void load(const Program& program, const Camera& model, std::size_t id)
+    inline void load(const Program& program, const Camera& model, std::string loc)
     {
         glm::mat4 view = model.modelview;
         glm::mat4 projection = model.projection;

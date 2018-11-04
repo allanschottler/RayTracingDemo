@@ -1,15 +1,17 @@
 #pragma once
 #include "Camera.h"
 #include "Sphere.h"
+#include "Plane.h"
 #include "Light.h"
 #include "Material.h"
 #include <boost/variant.hpp>
 
 using object_t = boost::variant<
     Camera,
-    Sphere,
     Light,
-    Material
+    Material,
+    Sphere,
+    Plane
 >;
 
 struct Object

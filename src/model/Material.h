@@ -1,7 +1,7 @@
 #pragma once
-
-#include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include "tags.h"
             
 /**
  * Modelo de luz de cena
@@ -9,22 +9,25 @@
 class Material
 {
 public:    
+    using tag_t = materials_tag;
     
     Material() = default;
 
     Material(float pdiffuseK,
              glm::vec4 pdiffuseColor,
              float pspecularK,
-             float shininess)
+             float pshininess)
         : diffuseK(pdiffuseK)
         , diffuseColor(pdiffuseColor)
         , specularK(pspecularK)
+        , shininess(pshininess)
     {}
 
     Material(const Material& rhs)
         : diffuseK(rhs.diffuseK)
         , diffuseColor(rhs.diffuseColor)
         , specularK(rhs.specularK)
+        , shininess(rhs.shininess)
     {}
 
     Material& operator=(const Material& rhs)
@@ -32,6 +35,7 @@ public:
         diffuseK = rhs.diffuseK;
         diffuseColor = rhs.diffuseColor;
         specularK = rhs.specularK;
+        shininess = rhs.shininess;
         return *this;
     }
 
@@ -47,7 +51,7 @@ public:
     // Coeficiente especular
     float specularK;
     
-    // Coeficiente especular
-    float shininessK;
+    // Coeficiente de brilho
+    float shininess;
 };
        

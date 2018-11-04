@@ -22,7 +22,7 @@ public:
     using Objects = std::vector<Object>;
     using VBO = freijo::VBO<glm::vec2>;
     
-//    Scene() = default;
+    Scene() = default;
 
     Scene(Objects pobjects)
         : _objects(std::move(pobjects))

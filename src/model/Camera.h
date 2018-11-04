@@ -1,9 +1,12 @@
 #pragma once
 #include <glm/mat4x4.hpp>
 #include <utility>
+#include "tags.h"
 
 struct Camera
 {
+    using tag_t = cameras_tag;
+    
     Camera() = default;
 
     Camera(glm::mat4 pmodelview, glm::mat4 pprojection, glm::vec4 pviewport)

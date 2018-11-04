@@ -5,11 +5,9 @@
 namespace uniform
 {        
     template<typename Program>
-    inline void load(const Program& program, const Sphere& model, std::size_t id)
+    inline void load(const Program& program, const Sphere& model, std::string loc)
     {
-        std::string loc = id2loc(id, spheres_tag{});
         gl::uniform(program, model.center, loc + "center");
         gl::uniform(program, model.radius, loc + "radius");
-        gl::uniform(program, model.color,  loc + "color");
     }
 }

@@ -29,6 +29,7 @@ struct Sphere
 
 struct Material
 {
+    float ambientK;
     float diffuseK;
     vec4 diffuseColor;
     float specularK;
@@ -75,7 +76,7 @@ uniform Plane ground;
 out vec4 fragColor;
 
 // Profundidade normalizada do fragmento
-out float fragDepth;
+//out float fragDepth;
 
 /******************************************************************************/
 /*                                                                            */
@@ -234,12 +235,12 @@ vec4 phong(in vec3 point, in vec3 normal)
     vec3 eye = camera_eye();
     vec3 v = normalize(eye - point);
     
-    vec4 cA = material.diffuseColor * 0.33f;
-    vec4 cD = max(dot(L, normal), 0.f) * material.diffuseColor;
+    vec4 cA = material.diffuseColor * material.ambientK;
+    vec4 cD = material.diffuseK * max(dot(L, normal), 0.f) * material.diffuseColor;
     cD = clamp(cD, 0.f, 1.f);
     vec4 cS;
     if(max(dot(L, normal), 0.f) > 0.f)
-        cS = pow(max(dot(r, v), 0.f), material.shininess) * light.color;
+        cS = material.specularK * pow(max(dot(r, v), 0.f), material.shininess) * light.color;
     cS = clamp(cS, 0.f, 1.f);
     
     return cA + cD + cS;
@@ -328,6 +329,6 @@ void main(void)
 
     // Atualiza profundidade do fragmento como a coordenada z do
     // ponto de intersecao no espaco de clip normalizado de [0..1]
-    fragDepth = (to_ndc(intersection).z + 1.0f) / 2.0f;;
+//    fragDepth = (to_ndc(intersection).z + 1.0f) / 2.0f;;
 }
 

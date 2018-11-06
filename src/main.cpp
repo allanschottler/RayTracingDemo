@@ -10,6 +10,7 @@
 #include "range/v3/all.hpp"
 #include "detail/toUniqueObjs.h"
 #include "detail/Arcball.h"
+//#include "detail/loadScene.h"
 
 #include <iostream>
 
@@ -28,7 +29,7 @@ std::vector<object_t> g_objs{
         viewport
     },
     Light({0, 0, 5}),
-    Material(0.77f, {1, 0, 0, 1}, 0.1f, 20.f),
+    Material(0.33f, 0.77f, {1, 0, 0, 1}, 1.f, 20.f),
     Plane({0, 0, -1}, {0, 0, 1}),
     Sphere({0, 0, 0}),
     Sphere({-3, -3, 0}),
@@ -66,6 +67,7 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT);
     render(*g_scene);
     glutSwapBuffers();
+//    glFlush();
 }
     
 void init() 
@@ -77,7 +79,7 @@ void init()
     detail::UniqueIDs uniqueIds;
     auto uniqueObjs = detail::toUniqueObjs(g_objs, uniqueIds);
     g_scene = new Scene(std::move(uniqueObjs));
-}
+}    
 
 int main(int argc, char** argv)
 {    

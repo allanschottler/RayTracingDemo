@@ -13,18 +13,21 @@ public:
     
     Material() = default;
 
-    Material(float pdiffuseK,
+    Material(float pambientK,
+             float pdiffuseK,
              glm::vec4 pdiffuseColor,
              float pspecularK,
              float pshininess)
-        : diffuseK(pdiffuseK)
+        : ambientK(pdiffuseK)
+        , diffuseK(pdiffuseK)
         , diffuseColor(pdiffuseColor)
         , specularK(pspecularK)
         , shininess(pshininess)
     {}
 
     Material(const Material& rhs)
-        : diffuseK(rhs.diffuseK)
+        : ambientK(rhs.ambientK)
+        , diffuseK(rhs.diffuseK)
         , diffuseColor(rhs.diffuseColor)
         , specularK(rhs.specularK)
         , shininess(rhs.shininess)
@@ -32,6 +35,7 @@ public:
 
     Material& operator=(const Material& rhs)
     {
+        ambientK = rhs.ambientK;
         diffuseK = rhs.diffuseK;
         diffuseColor = rhs.diffuseColor;
         specularK = rhs.specularK;
@@ -41,6 +45,9 @@ public:
 
     Material(Material&&) = default;
     Material& operator=(Material&&) = default;
+
+    // Coeficiente de ambiente
+    float ambientK;
 
     // Coeficiente de difusao
     float diffuseK;

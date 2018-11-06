@@ -1,5 +1,6 @@
 #version 330
 #define FLT_MAX 3.402823466e+38
+#define MAX_SPHERES 16
 
 /******************************************************************************/
 /*                                                                            */
@@ -67,7 +68,7 @@ uniform Light light;
 uniform Material material;
 
 // Objetos de cena
-uniform Sphere spheres[16];
+uniform Sphere spheres[MAX_SPHERES];
 uniform Plane ground;
 
 // Cor de saída do fragmento
@@ -89,9 +90,19 @@ out float fragDepth;
  */
 vec3 camera_eye()
 {
-    /* A posicao do olho no mundo eh dada pela matriz que leva a camera a origem.
-     * Como a cena esta na origem, essa matriz eh a propria transformada da cena. */
-    return model[3].xyz;
+    //return inverse(view)[3].xyz;
+    return vec3(0);
+}
+
+/*
+ * Converte ponto descrito localmente para coordenadas de mundo
+ * 
+ * in localPoint Ponto descrito localmente
+ * out [return] Ponto em coordenada de mundo
+ */
+vec4 to_world(vec3 localPoint)
+{    
+    return model * vec4(localPoint, 1);
 }
 
 /*
@@ -100,12 +111,8 @@ vec3 camera_eye()
  * in localPoint Ponto descrito localmente
  * out [return] Ponto em coordenada de camera
  */
-vec4 to_camera(vec3 localPoint, bool isNormal = false)
-{
-    // Se for normal, aplica normalMatrix
-    if(isNormal)
-        return transpose(inverse(view * model)) * vec4(localPoint, 1);
-    
+vec4 to_camera(vec3 localPoint)
+{    
     return view * model * vec4(localPoint, 1);
 }
 
@@ -248,43 +255,6 @@ vec4 phong(in vec3 point, in vec3 normal)
  * out normal Normal associada ao ponto
  * out [return] true se raio intercepta esfera
  */
-bool intersectRayPlane(
-    in Ray ray, in Plane plane, 
-    out float t, out vec3 normal)
-{
-    if(plane.normal == vec3(0))
-        return false;
-    
-    vec3 worldPoint = to_camera(plane.point).xyz;
-    vec3 worldNormal = to_camera(plane.normal, true).xyz; 
-            
-    float denom = dot(worldNormal, ray.dir);
-    if(denom > 1e-6) 
-    {
-        
-        vec3 ro2p = worldPoint - ray.orig;
-        t = dot(ro2p, worldNormal) / denom;
-        if(t >= 0)
-            return true;
-        else
-        {
-            t = FLT_MAX;
-            return false;
-        }
-    }
-    return false; 
-}
-
-/*
- * Intercepta um raio com uma esfera e retorna o ponto de intersecao
- * e a normal associada.
- * 
- * in ray Raio tracado
- * in sphere Esfera a ser testada contra raio
- * out intersection Ponto de intersecao na esfera
- * out normal Normal associada ao ponto
- * out [return] true se raio intercepta esfera
- */
 bool intersectRaySphere(
     in Ray ray, in Sphere sphere, 
     out float t, out vec3 normal)
@@ -315,67 +285,46 @@ bool intersectRaySphere(
  * Funcao principal
  * 
  * out fragColor Cor final do fragmento
+ * out fragDepth Profundidade normalizada do fragmento
  */
 void main(void)
 {
-    float tSphere = FLT_MAX, tPlane = FLT_MAX;
-    vec3 normalSphere, normalPlane;
-    bool hitSphere = false, hitPlane = false;
-    int pickedObj = 0;
+    int pickedObj = -1;
     float pickedT = FLT_MAX;
     vec3 pickedNormal;
     Ray ray = getCurrentRay();
     
     // Testa intersecao com objetos
-    hitSphere = intersectRaySphere(ray, spheres[0], tSphere, normalSphere);
-    hitPlane = intersectRayPlane(ray, ground, tPlane, normalPlane);
+    float time = 0;
+    vec3 normal;
     
-    if(!hitSphere && !hitPlane)
+    // Testa intersecao com esferas
+    for(int iSphere = 0; iSphere < MAX_SPHERES; iSphere++)
+    {
+        if(intersectRaySphere(ray, spheres[iSphere], time, normal))
+        {
+            if(time < pickedT)
+            {
+                pickedT = time;
+                pickedObj = iSphere;
+                pickedNormal = normal;
+            }
+        }
+    }
+    
+    // Se acertou nenhuma esfera
+    if(pickedObj == -1)
     {
         discard;
         return;
-    }
-    else if(!hitSphere)
-    {
-        pickedT = tPlane;
-        pickedNormal = normalPlane;
-        pickedObj = 1; //Plano
-    }
-    else if(!hitPlane)
-    {
-        pickedT = tSphere;
-        pickedNormal = normalSphere;
-        pickedObj = 2; //Esfera
-    }
-    else
-    {
-        if(tPlane <= tSphere)
-        {
-            pickedT = tPlane;
-            pickedNormal = normalPlane;
-            pickedObj = 1; //Plano
-        }
-        else
-        {
-            pickedT = tSphere;
-            pickedNormal = normalSphere;
-            pickedObj = 2; //Esfera
-        }
     }
     
     // Calcula ponto de intersecao
     vec3 intersection = ray.orig + pickedT * ray.dir;
     
     // Aplica iluminacao
-    if(pickedObj == 1) // Plano
-        fragColor = vec4(abs(to_camera(ground.normal, true).xyz), 1);
-    else if(pickedObj == 2) // Esfera
-        fragColor = phong(intersection, normalSphere);
-    else
-    {
-        discard;
-        return;
-    }
+    fragColor = phong(intersection, pickedNormal);
+   
 
     // Atualiza profundidade do fragmento como a coordenada z do
     // ponto de intersecao no espaco de clip normalizado de [0..1]

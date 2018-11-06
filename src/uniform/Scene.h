@@ -11,7 +11,7 @@ namespace uniform
     inline void load(const Program& program, const Scene& model)
     {      
         // Passa transformacao da cena
-        gl::uniform(program, model.transform, "model");               
+        gl::uniform(program, model.transform, "model");
         
         // Passa objetos para o programa
         ranges::for_each(model.objects(),

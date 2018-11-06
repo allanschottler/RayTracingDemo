@@ -18,7 +18,7 @@
 /***************************************/
 
 glm::vec4 viewport{0, 0, 800, 600};
-glm::mat4 modelview{glm::lookAt(glm::vec3{0, 0, 2}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0})};
+glm::mat4 modelview{glm::lookAt(glm::vec3{0, 0, 5}, glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0})};
 glm::mat4 projection{glm::perspective(glm::radians(45.0f), viewport.z/viewport.w, 0.1f, 100.f)};
 
 std::vector<object_t> g_objs{ 
@@ -30,7 +30,15 @@ std::vector<object_t> g_objs{
     Light({0, 0, 5}),
     Material(0.77f, {1, 0, 0, 1}, 0.1f, 20.f),
     Plane({0, 0, -1}, {0, 0, 1}),
-    Sphere({0, 0, 0})
+    Sphere({0, 0, 0}),
+    Sphere({-3, -3, 0}),
+    Sphere({0, -3, 0}),
+    Sphere({3, -3, 0}),
+    Sphere({-3, 0, 0}),
+    Sphere({3, 0, 0}),
+    Sphere({-3, 3, 0}),
+    Sphere({0, 3, 0}),
+    Sphere({3, 3, 0})
 };    
 
 Scene* g_scene = nullptr;
@@ -65,7 +73,10 @@ void init()
     glClearColor(0.0, 0.0, 0.0, 0.0);
     
     if(g_scene) delete g_scene;    
-    g_scene = new Scene(detail::toUniqueObjs(g_objs));
+    
+    detail::UniqueIDs uniqueIds;
+    auto uniqueObjs = detail::toUniqueObjs(g_objs, uniqueIds);
+    g_scene = new Scene(std::move(uniqueObjs));
 }
 
 int main(int argc, char** argv)
